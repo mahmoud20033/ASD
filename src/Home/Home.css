@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+.p_1_main {
+  font-family: Inter;
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 30px;
+  letter-spacing: 0%;
+  color: white;
+}
+.Carousel {
+  background-color: rgba(0, 0, 0, 0.116);
+}
+
+.sidebar {
+  direction: rtl;
+  z-index: 1000;
+}
+

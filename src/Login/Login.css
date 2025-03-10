@@ -1,0 +1,273 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.Image {
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(#4b667d, #88b9e3);
+  position: relative;
+}
+a {
+  text-decoration: none;
+}
+
+.Login_css {
+  position: absolute;
+  padding: 30px 0px;
+  border-radius: 18px;
+  transform: translate(-50%, -50%);
+  top: 50%;
+  left: 50%;
+  border-radius: 18px;
+  background-color: rgba(255, 255, 255, 0.842);
+  z-index: 100;
+}
+.P_login {
+  padding: 10px;
+  font-family: Inter;
+  font-weight: 700;
+  font-size: 50px;
+  line-height: 38.73px;
+  letter-spacing: 0%;
+  color: rgba(18, 21, 30, 1);
+  text-align: center;
+}
+.Form_login1 {
+  margin: 30px;
+}
+#formBasictext1,
+#formBasicEmailcraete,
+#formBasicPassword1,
+#formBasicConfirmPassword1 {
+  padding: 10px 10px 10px 50px;
+  font-size: 24px;
+}
+#formBasictext1,
+#formBasicEmailcraete,
+#formBasicPassword1,
+#formBasicConfirmPassword1,
+#formBasictext,
+#formBasicEmail,
+#formBasicPassword,
+#formBasicConfirmPassword {
+  border-bottom: 3px solid rgb(0, 0, 0);
+  box-shadow: none;
+}
+#formBasicEmailcraete1 {
+  border-bottom: 3px solid rgb(0, 0, 0);
+  box-shadow: none;
+  font-size: 24px;
+}
+
+#formBasicCheckbox {
+  background-color: black;
+}
+.Form_input {
+  margin-bottom: 30px;
+}
+
+.Check {
+  color: black;
+  font-family: Inter;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 28px;
+  letter-spacing: 0%;
+  float: right;
+}
+.Link_login {
+  color: rgba(22, 26, 37, 1);
+  text-decoration: none;
+  font-family: Inter;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 19.36px;
+  letter-spacing: 0%;
+}
+.Btn_login {
+  display: block;
+  margin: auto;
+  font-family: Inter;
+  font-weight: 700;
+  font-size: 30px;
+  line-height: 24.2px;
+  letter-spacing: 0%;
+  border-radius: 8px;
+  color: black;
+  background-color: rgba(0, 0, 0, 0.35);
+}
+.Register {
+  width: 100%;
+  text-align: center;
+  margin-top: 16px;
+}
+.span_react {
+  font-family: Inter;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 18.15px;
+  letter-spacing: 0%;
+}
+.Row_login {
+  justify-content: space-between;
+}
+.Forget_bg {
+  background: linear-gradient(#4b667d, #88b9e3);
+  width: 100%;
+  height: 100vh;
+  position: relative;
+}
+.forget_2 {
+  background-color: rgba(252, 252, 252, 0.842);
+  border: 1px solid rgba(198, 204, 207, 1);
+  padding: 30px 0px;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  top: 50%;
+  left: 50%;
+  border-radius: 20px;
+  border-width: 1px;
+  box-shadow: rgba(0, 0, 0, 0.25);
+}
+.Forget {
+  padding: 20px 50px;
+}
+.label_forget {
+  margin: 0px 0px 10px 0px;
+  width: 85;
+  height: 39;
+  top: 389px;
+  left: 407px;
+  font-family: Inter;
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 38.73px;
+  letter-spacing: 0%;
+  color: rgb(34, 31, 31);
+}
+.Forget_btn {
+  width: 110px;
+  height: 43px;
+  border-radius: 12px;
+  font-family: Inter;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 24.2px;
+  letter-spacing: 0%;
+  margin: 3px 0px 22px 0px;
+  color: black;
+  background-color: rgba(0, 0, 0, 0.35);
+}
+
+.Forget_input {
+  display: block;
+  width: 593px;
+  height: 62px;
+  border-radius: 12px;
+  padding-left: 20px;
+}
+.P_forget {
+  text-align: center;
+  padding: 20px 0px;
+  font-family: Inter;
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 38.73px;
+  letter-spacing: 0%;
+  font-family: Inter;
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 38.73px;
+  letter-spacing: 0%;
+  color: rgb(0, 0, 0);
+}
+.a_forget {
+  font-size: 24px;
+  color: rgb(0, 0, 0);
+  text-decoration: none;
+  font-family: Inter;
+  font-weight: 700;
+  line-height: 24.2px;
+  letter-spacing: 0%;
+}
+.a1_forget {
+  color: rgb(0, 0, 0);
+  text-decoration: none;
+  font-family: Inter;
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 24.2px;
+  letter-spacing: 0%;
+}
+
+.bg_login {
+  background: linear-gradient(#4b667d, #88b9e3);
+  width: 100%;
+  height: 100vh;
+  position: relative;
+}
+.login_container {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 30px 50px;
+  top: 50%;
+  left: 50%;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 1);
+  background-color: rgba(252, 252, 252, 0.842);
+}
+.h1_create {
+  padding: 10px 10px 20px 10px;
+  text-align: center;
+  font-family: Inter;
+  font-weight: 700;
+  font-size: 36px;
+  line-height: 43.57px;
+  letter-spacing: 0%;
+  color: rgb(0, 0, 0);
+}
+.group_create {
+  position: relative;
+}
+.user_i_create,
+.pass_i_create {
+  position: absolute;
+  top: 6%;
+  left: 1%;
+}
+.group_form_create {
+  padding-left: 100px;
+  font-size: 24px;
+}
+.Img_create,
+.Img_pass {
+  position: absolute;
+  width: 49px;
+  height: 49px;
+  top: 0px;
+  left: 0px;
+  scale: Fit;
+}
+.email_create {
+  font-size: 24px;
+  padding: 40px 0px;
+}
+.btn_login {
+  display: block;
+  margin: auto;
+  border-radius: 18px;
+  background-color: rgb(255, 255, 255);
+  box-shadow: none;
+  font-family: Inter;
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 29.05px;
+  letter-spacing: 0%;
+  color: rgb(0, 0, 0);
+}
