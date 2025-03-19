@@ -1,28 +1,30 @@
-// Component for managing employee data and operations
+// Employees Component: Manages employee records and operations
 import React, { useEffect, useState } from 'react'
-import "./Sidebar.css"
+import "../Sidebar.css"
 import Table from 'react-bootstrap/Table';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import InputGroup from 'react-bootstrap/InputGroup';
+import { useSearch } from '../../context/SearchContext';
 
-const Employees = () => {
-    // State for storing employee records
+const Foreman_Supervisor = () => {
+    const { searchQuery } = useSearch()
+    // State Management
+    // Stores all employee records
     const [Posts, Setpost] = useState([])
-    // State for search functionality
-    const [searchTerm, setSearchTerm] = useState('')
-    // States for editing functionality
+    // Controls editing states
     const [isEditing, setIsEditing] = useState(false)
     const [editingId, setEditingId] = useState(null)
     const [editedRow, setEditedRow] = useState({})
-    // State for new employee data
+    // Manages new employee entry form
     const [newSupplier, setNewSupplier] = useState({
         name: '',
-        phone: '',
-        Type: '',
+        sendreport: '',
+        Type: 'مشرف عمال',
+        Store_Supervisor: ''
     })
-
-    // Handle input changes for new employee form
+    // CRUD Operations
+    // Handles form input changes
     const handleInputChange = (event) => {
         const { name, value } = event.target
         setNewSupplier({ ...newSupplier, [name]: value })
@@ -33,7 +35,7 @@ const Employees = () => {
         const newId = Posts.length ? Posts[Posts.length - 1].id + 1 : 1
         const newPost = { id: newId, ...newSupplier }
         Setpost([...Posts, newPost])
-        setNewSupplier({ name: '', email: '', Type: '' })
+        setNewSupplier({ name: '', email: '', Store_Supervisor: '' })
     }
 
     // Start editing an existing employee
@@ -63,13 +65,9 @@ const Employees = () => {
 
     // Cancel current operation
     const handleCancel = () => {
-        setNewSupplier({ name: '', phone: '', Type: '', id: null })
+        setEditingId(null)
         setIsEditing(false)
-    }
-
-    // Handle search input changes
-    const handleSearch = (event) => {
-        setSearchTerm(event.target.value)
+        setEditedRow({})
     }
 
     // Delete employee record
@@ -79,66 +77,69 @@ const Employees = () => {
 
     // Filter employees based on search term
     const filteredPosts = Posts.filter(post =>
-        post.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.Type.toLowerCase().includes(searchTerm.toLowerCase())
+        post.name.toLowerCase().includes(searchQuery.toLowerCase())
+        ||
+        post.id?.toString().includes(searchQuery)
     )
-
+    // Handle report printing
+    const handlePrint = () => {
+        const printContent = document.getElementById('Employees-table');
+        const windowPrint = window.open('', '', 'width=900,height=600');
+        windowPrint.document.write(`
+                ${printContent.outerHTML}
+    `);
+        windowPrint.document.close();
+        windowPrint.focus();
+        windowPrint.print();
+        windowPrint.close();
+    };
     return (
-        <div className=' Navvv_com Suppliers  absolute top-0 left-0 w-10/12 '>
+        <div className=' Navvv_com Suppliers pt-3  absolute top-0 left-0 w-10/12 '>
+            <Button className='mr-3 mb-2 bg-black' onClick={handlePrint}>
+                طباعة التقرير
+            </Button>
             <div className='Employees px-2 '>
                 <div className='w-full h-full px-1' >
                     <div className='w-full'>
                         <span className='w-full '>
-                            <Form.Control
-                                value={searchTerm}
-                                onChange={handleSearch}
-                                className='w-full text-center py-2'
-                                label="asc"
-                                placeholder='البحث عن طريق الاسم او نوع الوظيفة'
-                            />
                             <InputGroup className="my-3 w-full">
                                 <Form.Control
-                                    placeholder="اسم الموظف"
-                                    aria-label="اسم الموظف"
+                                    placeholder="اسم مشرف العمال"
+                                    aria-label="اسم مشرف العمال"
                                     name="name"
                                     value={newSupplier.name}
                                     onChange={handleInputChange}
                                 />
                                 <Form.Control
-                                    placeholder="رقم الهاتف"
-                                    aria-label="رقم الهاتف"
-                                    name="phone"
-                                    value={newSupplier.phone}
+                                    placeholder="ارسال تقارير"
+                                    aria-label="ارسال تقارير"
+                                    name="sendreport"
+                                    value={newSupplier.sendreport}
                                     onChange={handleInputChange}
                                     className='input'
                                 />
-                                <Form.Select
-                                    placeholder="نوع العامل"
-                                    aria-label="نوع العامل"
-                                    name="Type"
-                                    value={newSupplier.Type}
+                                <Form.Control
+                                    placeholder="اسم مشرف المخازن"
+                                    aria-label="اسم مشرف المخازن"
+                                    name="Store_Supervisor"
+                                    value={newSupplier.Store_Supervisor}
                                     onChange={handleInputChange}
                                     className='input'
-                                >
-                                    <option value="مشرف عمال">مشرف عمال</option>
-                                    <option value="مشرف مخازن">مشرف مخازن</option>
-                                    <option value="عامل">عامل</option>
-
-                                </Form.Select>
+                                />
                             </InputGroup>
-                            <Button className="mb-3 bg-black" variant="outline-secondary" onClick={handleAddSupplier}>
-                                Add Supplier
+                            <Button className="mb-3 bg-black" onClick={handleAddSupplier}>
+                                اضافة موظف
                             </Button>
                         </span>
                     </div>
-                    <Table striped bordered hover>
+                    <Table id="Employees-table" striped bordered hover>
                         <thead>
                             <tr>
-                                <th className='w-1/8' >الكود</th>
-                                <th className='w-3/8' >اسم الموظف</th>
-                                <th className='w-2/8' >رقم الهاتف</th>
-                                <th className='w-2/8'>نوع الموظف</th>
-                                <th className='w-1/8'>تحديث البيانات</th>
+                                <th className='w-1/12' >الكود</th>
+                                <th className='w-1/12' >اسم مشرف العمال</th>
+                                <th className='w-1/12' >ارسال تقارير</th>
+                                <th className='w-1/12'>اسم مشرف المخازن</th>
+                                <th className='w-1/12'>تحديث البيانات</th>
                             </tr>
                         </thead>
                         {filteredPosts.map((post) => (
@@ -156,22 +157,18 @@ const Employees = () => {
                                     <td>
                                         {editingId === post.id ? (
                                             <Form.Control
-                                                value={editedRow.phone}
-                                                onChange={(e) => handleCellChange(e, 'phone')}
+                                                value={editedRow.sendreport}
+                                                onChange={(e) => handleCellChange(e, 'sendreport')}
                                             />
-                                        ) : post.phone}
+                                        ) : post.sendreport}
                                     </td>
                                     <td>
                                         {editingId === post.id ? (
-                                            <Form.Select
-                                                value={editedRow.Type}
-                                                onChange={(e) => handleCellChange(e, 'Type')}
-                                            >
-                                                <option value="مشرف عمال">مشرف عمال</option>
-                                                <option value="مشرف مخازن">مشرف مخازن</option>
-                                                <option value="عامل">عامل</option>
-                                            </Form.Select>
-                                        ) : post.Type}
+                                            <Form.Control
+                                                value={editedRow.Store_Supervisor}
+                                                onChange={(e) => handleCellChange(e, 'Store_Supervisor')}
+                                            />
+                                        ) : post.Store_Supervisor}
                                     </td>
                                     <td>
                                         {editingId === post.id ? (
@@ -223,4 +220,4 @@ const Employees = () => {
     )
 }
 
-export default Employees
+export default Foreman_Supervisor

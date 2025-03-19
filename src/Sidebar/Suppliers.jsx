@@ -5,30 +5,35 @@ import Table from 'react-bootstrap/Table';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import InputGroup from 'react-bootstrap/InputGroup';
+import SearchFilter from '../components/SearchFilter';
+import { useSearch } from '../context/SearchContext';
 
+// Suppliers Component: Manages supplier information and transactions
 const Suppliers = () => {
+  // State Management
+  // Stores the list of all suppliers
   const [Posts, Setpost] = useState([])
-  const [searchTerm, setSearchTerm] = useState('')
+  const { searchQuery } = useSearch();
+  // Stores data for new supplier entries
   const [newSupplier, setNewSupplier] = useState({
     name: '',
     phone: '',
     count: '',
+    manager: ''
   })
-
-  // useEffect(() => {
-  //   axios.get("https://jsonplaceholder.typicode.com/users")
-  //     .then((res) => {
-  //       Setpost(res.data)
-  //       console.log(res.data);
-  //     })
-  // }, [])
+  // Row Editing Management
+  // Tracks which row is currently being edited
   const [editingRow, setEditingRow] = useState(null);
+  // Stores temporary values during editing
   const [editedValues, setEditedValues] = useState({});
 
+  // CRUD Operations
+  // Initiates editing mode for a supplier row
   const startEditing = (post) => {
     setEditingRow(post.id)
     setEditedValues({ ...post })
   }
+  // Updates supplier data in the table
   const saveChanges = (postId) => {
     const updatedPosts = Posts.map(post =>
       post.id === postId ? { ...post, ...editedValues } : post
@@ -59,18 +64,15 @@ const Suppliers = () => {
     const newId = Posts.length ? Posts[Posts.length - 1].id + 1 : 1
     const newPost = { id: newId, ...newSupplier }
     Setpost([...Posts, newPost])
-    setNewSupplier({ name: '', email: '', count: '' })
+    setNewSupplier({ name: '', email: '', count: '', manager: '' })
   }
   // Deletes a supplier from the Posts array
   const handleDelete = (id) => {
     Setpost(Posts.filter(post => post.id !== id))
   }
 
-  // Updates search term state for filtering suppliers
-  const handleSearch = (event) => {
-    setSearchTerm(event.target.value)
-  }
-
+  // Printing Functionality
+  // Handles report generation and printing
   const handlePrint = () => {
     const printContent = document.getElementById('suppliers-table');
     const windowPrint = window.open('', '', 'width=900,height=600');
@@ -84,27 +86,20 @@ const Suppliers = () => {
   };
 
   const filteredPosts = Posts.filter(post =>
-    post.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    post.id.toString().includes(searchTerm)
+    post.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    post.id.toString().includes(searchQuery)
   )
 
   return (
-    <div className='Suppliers absolute top-0 left-0 w-10/12 '>
+    <div className='Suppliers absolute pt-3 top-0 left-0 w-10/12 '>
       <div className='w-full h-full px-1' >
         <div className='w-full'>
           <div className='flex justify-between mb-3'>
-            <Button variant="outline-success" onClick={handlePrint}>
+            <Button className='bg-black' onClick={handlePrint}>
               طباعة التقرير
             </Button>
           </div>
           <span className='w-full '>
-            <Form.Control
-              value={searchTerm}
-              onChange={handleSearch}
-              className='w-full text-center py-2'
-              label="asc"
-              placeholder='البحث عن طريق الكود او الاسم'
-            />
             <InputGroup className="my-3 w-full">
               <Form.Control
                 placeholder="اسم المورد"
@@ -125,7 +120,17 @@ const Suppliers = () => {
                 placeholder="الرصيدالحالي"
                 aria-label="الرصيد الحالي "
                 name="count"
+                type="number"
+                step="0.01"
                 value={newSupplier.count}
+                onChange={handleInputChange}
+                className='input'
+              />
+              <Form.Control
+                placeholder="المدير"
+                aria-label="المدير"
+                name="manager"
+                value={newSupplier.manager}
                 onChange={handleInputChange}
                 className='input'
               />
@@ -142,6 +147,8 @@ const Suppliers = () => {
               <th className='w-3/8' >اسم المورد</th>
               <th className='w-2/8' >رقم الهاتف</th>
               <th className='w-2/8'>الرصيدالحالي</th>
+              <th className='w-2/8'>المدير</th>
+
               <th className='w-1/8'>تحديث البيانات</th>
             </tr>
           </thead>
@@ -172,11 +179,23 @@ const Suppliers = () => {
                 <td>
                   {editingRow === post.id ? (
                     <Form.Control
+                      type="number"
+                      step="0.01"
                       value={editedValues.count || ''}
                       onChange={(e) => handleCellEdit(e, 'count')}
                     />
                   ) : (
                     post.count
+                  )}
+                </td>
+                <td>
+                  {editingRow === post.id ? (
+                    <Form.Control
+                      value={editedValues.manager || ''}
+                      onChange={(e) => handleCellEdit(e, 'manager')}
+                    />
+                  ) : (
+                    post.manager
                   )}
                 </td>
                 <td>

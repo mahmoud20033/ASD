@@ -4,14 +4,17 @@ import Layout from './Layout/Layout';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import "@fortawesome/fontawesome-free/css/all.css";
 import { MissionProvider } from './context/MissionContext';
+import { SearchProvider } from './context/SearchContext';
 
 const App = () => {
   return (
-    <MissionProvider>
-      <div className='w-screen h-screen Suppliers'>
-        <Layout />
-      </div>
-    </MissionProvider>
+    <SearchProvider>
+      <MissionProvider>
+        <div className='w-screen h-screen Suppliers '>
+          <Layout />
+        </div>
+      </MissionProvider>
+    </SearchProvider>
   )
 }
 

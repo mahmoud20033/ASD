@@ -1,27 +1,25 @@
-// Raw Materials Component: Manages inventory and transactions of raw materials
 import React, { useEffect, useState } from 'react'
 import "./Sidebar.css"
 import Table from 'react-bootstrap/Table';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import InputGroup from 'react-bootstrap/InputGroup';
-import { useSearch } from '../context/SearchContext';
 import axios from 'axios';
+import { useSearch } from '../context/SearchContext';
 
-const Rawmaterial = () => {
+// Clients Component: Manages client information and operations
+const Clients = () => {
     const { searchQuery } = useSearch();
+    // State Management
+    // Stores all client records
     const [Posts, Setpost] = useState([])
     // Controls editing states
     const [editingId, setEditingId] = useState(null)
-    // Manages new material entry form
+    // Manages new client entry form
     const [newScrap, setNewScrap] = useState({
         name: '',
         Quantity: '',
-        Cost: '',
-        date: new Date().toISOString().split('T')[0],
-        sort: 'اول',
-        Foreman_Supervisor: '',
-        Store_Supervisor: ''
+        date: new Date().toISOString().split('T')[0]
     })
     // Row Editing Logic
     // Tracks current row being edited
@@ -29,13 +27,14 @@ const Rawmaterial = () => {
     // Temporarily stores edited values
     const [editedValues, setEditedValues] = useState({});
 
-    // Function to start editing a row
+    // CRUD Operations
+    // Initiates row editing
     const startEditing = (post) => {
         setEditingRow(post.id);
         setEditedValues({ ...post });
     };
 
-    // Save edited changes
+    // Function to save changes after editing
     const saveChanges = (postId) => {
         const updatedPosts = Posts.map(post =>
             post.id === postId ? { ...editedValues } : post
@@ -81,11 +80,7 @@ const Rawmaterial = () => {
         setNewScrap({
             name: '',
             Quantity: '',
-            Cost: '',
-            date: new Date().toISOString().split('T')[0],
-            sort: 'اول',
-            Foreman_Supervisor: '',
-            Store_Supervisor: ''
+            date: new Date().toISOString().split('T')[0]
         })
     }
 
@@ -96,37 +91,31 @@ const Rawmaterial = () => {
         if (editingId === id) {
             setEditingId(null)
             setNewScrap({
+                name: '',
                 Quantity: '',
-                Type: 'علب الكنز',
-                Cost: '',
-                sort: '1',
                 date: new Date().toISOString().split('T')[0],
-                Foreman_Supervisor: '',
-                Store_Supervisor: ''
             })
         }
     }
 
     // Filter materials based on search
     const filteredPosts = Posts.filter(post =>
-        post.Quantity?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         post.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         post.id?.toString().includes(searchQuery)
     )
 
     // Handle report printing
     const handlePrint = () => {
-        const printContent = document.getElementById('Rawmaterial-table');
+        const printContent = document.getElementById('Clients-table');
         const windowPrint = window.open('', '', 'width=900,height=600');
         windowPrint.document.write(`
-                    ${printContent.outerHTML}
-        `);
+                        ${printContent.outerHTML}
+            `);
         windowPrint.document.close();
         windowPrint.focus();
         windowPrint.print();
         windowPrint.close();
     };
-
     return (
         <div className='Suppliers absolute pt-3  top-0 left-0 w-10/12 max-w-50 '>
             <div className='w-full h-full px-1' >
@@ -149,60 +138,23 @@ const Rawmaterial = () => {
                         value={newScrap.Quantity}
                         onChange={handleInputChange}
                     />
-
-
-                    <Form.Control
-                        placeholder="تكلفة الكيلو"
-                        name="Cost"
-                        type="number"
-                        step="0.01"
-                        value={newScrap.Cost}
-                        onChange={handleInputChange}
-                    />
                     <Form.Control
                         type="date"
                         name="date"
                         value={newScrap.date}
                         onChange={handleInputChange}
                     />
-                    <Form.Select
-                        name="sort"
-                        value={newScrap.sort}
-                        onChange={handleInputChange}
-                    >
-                        <option value="اول">اول</option>
-                        <option value="ثاني">ثاني</option>
-                        <option value="ثالث">ثالث</option>
-
-                    </Form.Select>
-                    <Form.Control
-                        placeholder='اسم مشرف العمال'
-                        name="Foreman_Supervisor"
-                        value={newScrap.Foreman_Supervisor}
-                        onChange={handleInputChange}
-                    />
-                    <Form.Control
-                        placeholder='اسم مشرف المخازن'
-                        name="Store_Supervisor"
-                        value={newScrap.Store_Supervisor}
-                        onChange={handleInputChange}
-                    />
                 </InputGroup>
                 <Button className='mb-3 bg-black' onClick={handleAddScrap}>
-                    {editingId !== null ? 'تحديث المادة الخام' : 'إضافة مادة خام'}
+                    إضافة عملاء
                 </Button>
-                <Table id="Rawmaterial-table" striped bordered hover>
+                <Table id="Clients-table" striped bordered hover>
                     <thead>
                         <tr>
                             <th className='w-1/12'>الكود</th>
-                            <th className='w-1/12'>الاسم</th>
-                            <th className='w-1/12'>الكمية</th>
-                            <th className='w-1/12'>تكلفة الطن</th>
-                            <th className='w-1/12'>موعد التصدير</th>
-                            <th className='w-1/12'>فرز</th>
-                            <th className='w-1/12'>اسم مشرف العمال</th>
-                            <th className='w-1/12'>اسم مشرف المخازن</th>
-
+                            <th className='w-2/12'>اسم المورد</th>
+                            <th className='w-2/12'>الكمية</th>
+                            <th className='w-2/12'>تاريخ الاستلام</th>
                             <th className='w-1/12'>تعديل</th>
                         </tr>
                     </thead>
@@ -233,49 +185,11 @@ const Rawmaterial = () => {
                                     <td>
                                         {editingRow === post.id ? (
                                             <Form.Control
-                                                type="number"
-                                                step="0.01"
-                                                value={editedValues.Cost}
-                                                onChange={(e) => handleCellEdit(e, 'Cost')}
-                                            />
-                                        ) : post.Cost}
-                                    </td>
-                                    <td>
-                                        {editingRow === post.id ? (
-                                            <Form.Control
                                                 type="date"
                                                 value={editedValues.date}
                                                 onChange={(e) => handleCellEdit(e, 'date')}
                                             />
                                         ) : post.date}
-                                    </td>
-                                    <td>
-                                        {editingRow === post.id ? (
-                                            <Form.Select
-                                                value={editedValues.sort}
-                                                onChange={(e) => handleCellEdit(e, 'sort')}
-                                            >
-                                                <option value="اول" > اول</option>
-                                                <option value="ثاني">ثاني</option>
-                                                <option value="ثالث">ثالث</option>
-                                            </Form.Select>
-                                        ) : post.sort}
-                                    </td>
-                                    <td>
-                                        {editingRow === post.id ? (
-                                            <Form.Control
-                                                value={editedValues.Foreman_Supervisor}
-                                                onChange={(e) => handleCellEdit(e, 'Foreman_Supervisor')}
-                                            />
-                                        ) : post.Foreman_Supervisor}
-                                    </td>
-                                    <td>
-                                        {editingRow === post.id ? (
-                                            <Form.Control
-                                                value={editedValues.Store_Supervisor}
-                                                onChange={(e) => handleCellEdit(e, 'Store_Supervisor')}
-                                            />
-                                        ) : post.Store_Supervisor}
                                     </td>
 
                                     <td>
@@ -323,7 +237,9 @@ const Rawmaterial = () => {
                     }
                 </Table>
             </div>
-        </div>)
+        </div>
+    )
+
 }
 
-export default Rawmaterial
+export default Clients

@@ -4,12 +4,25 @@ import Table from 'react-bootstrap/Table';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 import InputGroup from 'react-bootstrap/InputGroup';
+import { useSearch } from '../context/SearchContext';
 
+/**
+ * Scrapstore component manages inventory of scrap materials.
+ * Provides functionality for adding, editing, deleting, and searching scrap items.
+ * Includes a printable report feature.
+ */
 const Scrapstore = () => {
-    // Stores all scrap items
+    const { searchQuery } = useSearch();
+    /**
+     * State Management:
+     * Posts: Array of all scrap items
+     * searchTerm: Current search filter
+     * editingRow: ID of row being edited
+     * editedValues: Temporary storage for edit changes
+     * newScrap: Form data for new scrap entries
+     */
     const [Posts, Setpost] = useState([])
     // Stores the current search term for filtering
-    const [searchTerm, setSearchTerm] = useState('')
     // ID of the item being edited (legacy - can be removed)
     const [editingId, setEditingId] = useState(null)
     // State for new scrap item form
@@ -17,13 +30,22 @@ const Scrapstore = () => {
         Quantity: '',
         Type: 'علب الكنز',
         Cost: '',
+        name_receive: '',
+        date_send: '',
+        date_receive: ''
     })
     // ID of the row currently being edited in the table
     const [editingRow, setEditingRow] = useState(null);
     // Temporarily stores the edited values while editing a row
     const [editedValues, setEditedValues] = useState({});
 
-    // Starts editing mode for a table row
+    /**
+     * Row Editing Functions:
+     * startEditing: Initiates edit mode for a row
+     * saveChanges: Commits edited values to main state
+     * cancelEditing: Abandons current edit operation
+     * handleCellEdit: Updates temporary edit state
+     */
     const startEditing = (post) => {
         setEditingRow(post.id)
         setEditedValues({ ...post })
@@ -50,7 +72,10 @@ const Scrapstore = () => {
         })
     }
 
-    // Handles printing the scrap store table
+    /**
+     * Generates a printable version of the scrap inventory table
+     * Opens in new window for printing
+     */
     const handlePrint = () => {
         const printContent = document.getElementById('Scrapstore-table');
         const windowPrint = window.open('', '', 'width=900,height=600');
@@ -62,12 +87,14 @@ const Scrapstore = () => {
         windowPrint.print();
         windowPrint.close();
     };
-    // Updates search term state for filtering
-    const handleSearch = (event) => {
-        setSearchTerm(event.target.value)
-    }
 
-    // Handles changes in the new scrap input form
+    /**
+     * Form Handlers:
+     * handleSearch: Updates search filter
+     * handleInputChange: Updates new scrap form fields
+     * handleAddScrap: Creates new scrap entry
+     * handleDelete: Removes scrap entry
+     */
     const handleInputChange = (event) => {
         const { name, value } = event.target
         setNewScrap({ ...newScrap, [name]: value })
@@ -75,9 +102,6 @@ const Scrapstore = () => {
 
     // Adds a new scrap item to the Posts array
     const handleAddScrap = () => {
-
-
-
         // Add new scrap
         const newId = Posts.length ? Posts[Posts.length - 1].id + 1 : 1
         const newPost = { id: newId, ...newScrap }
@@ -87,6 +111,9 @@ const Scrapstore = () => {
             Quantity: '',
             Type: 'علب الكنز',
             Cost: '',
+            name_receive: '',
+            date_send: '',
+            date_receive: ''
         })
     }
 
@@ -97,33 +124,26 @@ const Scrapstore = () => {
 
     // Filters posts based on search term
     const filteredPosts = Posts.filter(post =>
-        post.Type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.id.toString().includes(searchTerm)
+        post.Type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        post.id?.toString().includes(searchQuery)
     )
     return (
 
         // Main container for the scrap store interface
-        <div className='Suppliers absolute top-0 left-0 w-10/12 '>
+        <div className='Suppliers absolute pt-3 top-0 left-0 w-10/12 '>
             <div className='w-full h-full px-1' >
                 {/* Print report button */}
-                <Button variant="outline-success" className='my-2' onClick={handlePrint}>
+                <Button className='my-2 bg-black' onClick={handlePrint}>
                     طباعة التقرير
                 </Button>
-                {/* Search input field */}
-                <Form.Control
-                    aria-label="Example text with button addon"
-                    aria-describedby="basic-addon1"
-                    className='w-full text-center py-2'
-                    value={searchTerm}
-                    placeholder='البحث عن طريق النوع'
-                    onChange={handleSearch}
-                />
                 {/* New scrap input form */}
                 <InputGroup className="my-3">
 
                     <Form.Control
                         placeholder="الكمية"
                         name="Quantity"
+                        type="number"
+                        step="0.01"
                         value={newScrap.Quantity}
                         onChange={handleInputChange}
                     />
@@ -134,27 +154,48 @@ const Scrapstore = () => {
                         onChange={handleInputChange}
                     >
                     </Form.Select>
-
-
                     <Form.Control
-                        placeholder="تكلفة الكيلو"
+                        placeholder="تكلفة الطن"
                         name="Cost"
+                        type="number"
+                        step="0.01"
                         value={newScrap.Cost}
                         onChange={handleInputChange}
                     />
+                    <Form.Control
+                        type="date"
+                        name="date_send"
+                        value={newScrap.date_send}
+                        onChange={handleInputChange}
+                    />
+                    <Form.Control
+                        type="date"
+                        name="date_receive"
+                        value={newScrap.date_receive}
+                        onChange={handleInputChange}
+                    />
+                    <Form.Control
+                        placeholder="اسم المستلم"
+                        name="name_receive"
+                        value={newScrap.name_receive}
+                        onChange={handleInputChange}
+                    />
                 </InputGroup>
-                <Button className='mb-3 bg-black'  onClick={handleAddScrap}>
+                <Button className='mb-3 bg-black' onClick={handleAddScrap}>
                     إضافة خردة
                 </Button>
                 {/* Scrap items table */}
                 <Table id='Scrapstore-table' striped bordered hover>
                     <thead>
                         <tr>
-                            <th className='w-1/8'>الكود</th>
-                            <th className='w-2/8'>الكمية</th>
-                            <th className='w-2/8'>النوع</th>
-                            <th className='w-1/8'>تكلفة الكيلو</th>
-                            <th className='w-1/8'>تعديل</th>
+                            <th className='w-1/12'>الكود</th>
+                            <th className='w-1/12'>الكمية</th>
+                            <th className='w-1/12'>النوع</th>
+                            <th className='w-1/12'>تكلفة الطن</th>
+                            <th className='w-1/12'>موعد التسليم</th>
+                            <th className='w-1/12'>موعدالاستلام</th>
+                            <th className='w-1/12'>اسم المستلم</th>
+                            <th className='w-1/12'>تعديل</th>
                         </tr>
                     </thead>
                     {
@@ -165,6 +206,8 @@ const Scrapstore = () => {
                                     <td>
                                         {editingRow === post.id ? (
                                             <Form.Control
+                                                type="number"
+                                                step="0.01"
                                                 value={editedValues.Quantity || ''}
                                                 onChange={(e) => handleCellEdit(e, 'Quantity')}
                                             />
@@ -188,11 +231,42 @@ const Scrapstore = () => {
                                     <td>
                                         {editingRow === post.id ? (
                                             <Form.Control
+                                                type="number"
+                                                step="0.01"
                                                 value={editedValues.Cost || ''}
                                                 onChange={(e) => handleCellEdit(e, 'Cost')}
                                             />
                                         ) : (
                                             post.Cost
+                                        )}
+                                    </td>
+                                    <td>
+                                        {editingRow === post.id ? (
+                                            <Form.Control
+                                                type="date"
+                                                value={editedValues.date}
+                                                onChange={(e) => handleCellEdit(e, 'date_send')}
+                                            />
+                                        ) : post.date_send}
+                                    </td>
+                                    <td>
+                                        {editingRow === post.id ? (
+                                            <Form.Control
+                                                type="date"
+                                                value={editedValues.date}
+                                                onChange={(e) => handleCellEdit(e, 'date_receive')}
+                                            />
+                                        ) : post.date_receive}
+                                    </td>
+
+                                    <td>
+                                        {editingRow === post.id ? (
+                                            <Form.Control
+                                                value={editedValues.name_receive || ''}
+                                                onChange={(e) => handleCellEdit(e, 'name_receive')}
+                                            />
+                                        ) : (
+                                            post.name_receive
                                         )}
                                     </td>
                                     <td>

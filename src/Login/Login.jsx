@@ -1,18 +1,23 @@
+// Import necessary dependencies and hooks
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
 import Form from 'react-bootstrap/Form';
 import './Login.css'
 import { Col, Row } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
+import { useUsers } from '../context/UserContext';
 
 const Login = () => {
+  // State for form fields and UI control
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  // const [isLoading, setIsLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [savedEmails, setSavedEmails] = useState([]);
   const navigate = useNavigate();
+  const { users } = useUsers();
 
+  // Load saved credentials if "Remember Me" was checked
   useEffect(() => {
     const savedEmail = localStorage.getItem('rememberedEmail');
     const savedPassword = localStorage.getItem('rememberedPassword');
@@ -23,8 +28,13 @@ const Login = () => {
       setPassword(savedPassword);
       setRememberMe(true);
     }
+
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const emails = users.map(user => user.email);
+    setSavedEmails(emails);
   }, []);
 
+  // Handle "Remember Me" checkbox changes
   const handleRememberMe = (e) => {
     setRememberMe(e.target.checked);
     if (e.target.checked) {
@@ -38,37 +48,48 @@ const Login = () => {
     }
   };
 
+  // Handle login form submission
   async function handleLogin(e) {
     e.preventDefault();
     setError('');
-    // setIsLoading(true);
 
+    // Validate form inputs
     if (!email || !password) {
       setError('Please fill in all fields');
-      // setIsLoading(false);
       return;
     }
 
-    try {
-      if (email === 'admin@gmail.com' && password === 'admin') {
-        if (rememberMe) {
-          localStorage.setItem('rememberedEmail', email);
-          localStorage.setItem('rememberedPassword', password);
-        }
-        navigate('/Main'); // Replace with your target route
-      } else {
-        setError('البريد الالكتروني او كلمة السر خاطئة');
+    // Find user and verify credentials
+    const user = users.find(u => u.email === email && u.password === password);
+
+    if (user) {
+      // Save credentials if remember me is checked
+      if (rememberMe) {
+        localStorage.setItem('rememberedEmail', email);
+        localStorage.setItem('rememberedPassword', password);
       }
-    } catch (err) {
-      setError('حدث خطأ اثناء تسجيل الدخول');
+      localStorage.setItem('currentUser', JSON.stringify(user));
+      navigate('/Main');
+    } else {
+      setError('البريد الالكتروني او كلمة السر خاطئة');
     }
   }
 
+  // Render login form
   return (
     <>
-      <div className='Image'>
-        <div className='min-w-s w-3/6 Login_css'>
+      <div className='Image'
+        style={{
+        backgroundImage: `url('src/Login/Images/Login_image.png')`,  // Replace with your image path
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        minHeight: '100vh'
+        }}
+      >
+        <div className='min-w-96 w-3/6 Login_css'>
           <h1 className='P_login'>تسجيل دخول</h1>
+
           <Form className='Form_login1' onSubmit={handleLogin}>
             {error && <div className="text-red-500 mb-4">{error}</div>}
 
@@ -78,7 +99,14 @@ const Login = () => {
                 placeholder="اسم المستخدم"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                list="emailList"
+                autoComplete="email"
               />
+              <datalist id="emailList">
+                {savedEmails.map((email, index) => (
+                  <option key={index} value={email} />
+                ))}
+              </datalist>
             </Form.Group>
             <Form.Group className="mb-6 Form_input" controlId="formBasicPassword">
               <Form.Control
@@ -107,7 +135,6 @@ const Login = () => {
             <button
               className='max-w-96 w-11/12 py-3 Btn_login'
               type="submit"
-
             >
               تسجيل
             </button>

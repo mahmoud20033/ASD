@@ -1,8 +1,5 @@
 import React from 'react';
 import Carousel from 'react-bootstrap/Carousel';
-import './Home.css';
-import Missions from '../components/Missions';
-import Sidebar from './Sidebar';
 
 const Main = () => {
     return (
@@ -12,7 +9,7 @@ const Main = () => {
                     <Carousel.Item interval={5000}>
                         <img
                             className="d-block w-screen h-screen"
-                            src='src\Home\Images\1.png'
+                            src='src/Home/Images/1.png'
                             alt="First slide"
                         />
                         <Carousel.Caption className='Carousel'>
@@ -22,7 +19,7 @@ const Main = () => {
                     <Carousel.Item interval={5000}>
                         <img
                             className="d-block w-screen h-screen"
-                            src="src\Home\Images\2.png"
+                            src="src/Home/Images/2.png"
                             alt="Second slide"
                         />
                         <Carousel.Caption className='Carousel'>
@@ -32,7 +29,7 @@ const Main = () => {
                     <Carousel.Item interval={5000}>
                         <img
                             className="d-block w-screen h-screen"
-                            src="src\Home\Images\3.png"
+                            src="src/Home/Images/3.png"
                             alt="Third slide"
                         />
                         <Carousel.Caption className='Carousel'>
