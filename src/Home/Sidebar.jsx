@@ -1,127 +1,169 @@
 import React from 'react';
-import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
-import Offcanvas from 'react-bootstrap/Offcanvas';
 import { Link } from 'react-router';
 import { Col } from 'react-bootstrap';
-import { FaLock } from 'react-icons/fa';
-import { useUsers } from '../context/UserContext';
+import { FaLock, FaCaretDown } from 'react-icons/fa';
 import SearchFilter from '../components/SearchFilter';
+import { Dropdown } from 'react-bootstrap';
+import { FaHouse } from 'react-icons/fa6';
+import team from '../Home/Images/team.png';
+import supplier from '../Home/Images/supplier.png';
+import clients from '../Home/Images/clients.png';
+import logout from '../Home/Images/logout.png';
+import storage from '../Home/Images/storage.png';
+import شئون_عاملين from '../Home/Images/شئون عاملين.png';
 
 const Sidebar = () => {
-    const currentUser = JSON.parse(localStorage.getItem('currentUser')) || { permissions: {} };
 
-    const LinkWithPermission = ({ to, permission, children }) => {
-        const hasPermission = currentUser.permissions[permission];
-
-        if (!hasPermission) {
-            return (
-                <span className='Dropdown_linkk text-danger  flex items-center gap-2 cursor-not-allowed'>
-                    {children}
-                    <FaLock size={14} />
-                </span>
-            );
-        }
-
-        return (
-            <Link to={to} className='Dropdown_linkk'>
-                {children}
-            </Link>
-        );
+    const getUserRole = () => {
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        return user ? user.role : null;
     };
 
+    // Check if user has permission (manager or admin)
+    const hasPermission = () => {
+        const role = getUserRole();
+        return role === 'manager' || role === 'admin';
+    };
     return (
-        <div className="fixed top-0 right-0 Sidebar w-2/12 h-screen text-black pr-4 z-300">
-            {["lg"].map((expand) => (
-                <Navbar key={expand} expand={expand}>
-                    <Navbar.Toggle aria-controls={`offcanvasNavbar-expand-${expand}`} className=' absolute top-0 right-0 ' />
-                    <Navbar.Offcanvas
-                        id={`offcanvasNavbar-expand-${expand}`}
-                        aria-labelledby={`offcanvasNavbarLabel-expand-${expand}`}
-                        placement="end"
-                        className="Sidebar "
-                    >
-                        <Offcanvas.Header closeButton />
-                        <Offcanvas.Body className='absolute top-6 right-0'>
-                            <ul className="space-y-4 w-60">
-                                <li className='space-y-4 w-54 p-0'>
-                                    <SearchFilter />
-                                </li>
-                                <li className="text-white p-2 rounded">
-                                    <Link to="/Main" className='Dropdown_link'>
-                                        الصفحة الرئيسية
-                                    </Link>
-                                </li>
+        <div className='Sidebar'>
+            <div className='Sidebar_content w-fit  h-screen px-3 py-4'>
+                <div className='my-3 div1'>
+                    <Link to="/Main" className='unlock'>
+                        <div className='flex items-center'>
+                            <FaHouse className='text-black' size={30} />
+                            <span className='Dropdown_link mr-2 p_link'>
+                                الصفحة الرئيسية
+                            </span>
+                        </div>
+                    </Link>
+                </div>
 
-                                <li>
-                                    <LinkWithPermission to="/Manager" permission="Manager">
-                                        المدير
-                                    </LinkWithPermission>
-                                </li>
-                                <li className="p-2 text-black">
-                                    <NavDropdown title="شئون العاملين" className='Dropdown_Navv w-70'>
-                                        <Col lg={12} md={12} sm={12}>
-                                            <LinkWithPermission to="/Store_Supervisor" permission="Store_Supervisor">
-                                                مشرف المخازن
-                                            </LinkWithPermission>
-                                        </Col>
-                                        <NavDropdown.Divider />
-                                        <Col lg={12} md={12} sm={12}>
-                                            <LinkWithPermission to="/Foreman_Supervisor" permission="Store_Supervisor">
-                                                مشرف العمال
-                                            </LinkWithPermission>
-                                        </Col>
-                                        <NavDropdown.Divider />
-                                        <Col lg={12} md={12} sm={12}>
-                                            <LinkWithPermission to="/Workers" permission="Workers">
-                                                العمال
-                                            </LinkWithPermission>
-                                        </Col>
-                                        <NavDropdown.Divider />
-                                        <Col lg={12} md={12} sm={12}>
-                                            <LinkWithPermission to="/Pouvoirs" permission="Dashboard">
-                                                صلاحيات الموظفين
-                                            </LinkWithPermission>
-                                        </Col>
-                                    </NavDropdown>
-                                </li>
+                <div className='my-3 div2'>
+                    <Link to="/Manager">
+                        <div className='flex items-center '>
+                            <img src={team} alt="manager" />
+                            <span className='p_link mr-2'>
+                                المدير
+                            </span>
+                        </div>
+                    </Link>
+                </div>
+                <div className='my-3 div2'
+                    style={{ display: hasPermission() ? 'block' : 'none' }}
+                >
+                    <Link to="/permissions">
+                        <div className='flex items-center '>
+                            <img src={team} alt="permissions" />
+                            <span className='p_link mr-2'
 
-                                <li className="p-2 rounded text-black">
-                                    <NavDropdown title="المخازن" className='Dropdown_Navv w-70'>
-                                        <LinkWithPermission to="/Scrapstore" permission="Scrapstore">
-                                            مخزن الخردة
-                                        </LinkWithPermission>
-                                        <NavDropdown.Divider />
-                                        <LinkWithPermission to="/Rawmaterial" permission="Rawmaterial">
-                                            مخزن المادة الخام
-                                        </LinkWithPermission>
-                                    </NavDropdown>
-                                </li>
+                            >
+                                الصلاحيات
+                            </span>
+                        </div>
+                    </Link>
+                </div>
+                <div className="my-3 text-black flex items-center div3">
+                    <img src={شئون_عاملين} alt="شئون عاملين" />
+                    <span className='p_link'>
+                        <NavDropdown
+                            title="شئون العاملين"
+                            className='Dropdown_Navv w-fit mr-2'
+                        >
+                            <Col lg={12} md={12} sm={12}>
+                                <Link to="/Store_Supervisor">
+                                    <span className='Dropdown_linkk'>
+                                        مشرف المخازن
+                                    </span>
+                                </Link>
+                            </Col>
+                            <NavDropdown.Divider />
+                            <Col lg={12} md={12} sm={12}>
+                                <Link to="/Foreman_Supervisor">
+                                    <span className='Dropdown_linkk'>
+                                        مشرف العمال
+                                    </span>
+                                </Link>
+                            </Col>
+                            <NavDropdown.Divider />
+                            <Col lg={12} md={12} sm={12}>
+                                <Link to="/Workers">
+                                    <span className='Dropdown_linkk'>
+                                        العمال
+                                    </span>
+                                </Link>
+                            </Col>
+                        </NavDropdown>
+                    </span>
+                </div>
 
-                                <li className="p-2 rounded">
-                                    <LinkWithPermission to="/Suppliers" permission="Suppliers">
-                                        المورد
-                                    </LinkWithPermission>
-                                </li>
+                <div className="my-3 rounded text-black flex items-center div4">
+                    <img src={storage} alt="storage" />
+                    <span className='p_link'>
+                        <NavDropdown
+                            title="المخازن"
+                            className='Dropdown_Navv w-fit mr-2'
+                        >
+                            <Link to="/Scrapstore">
+                                <span className='Dropdown_linkk'>
+                                    مخزن الخردة
+                                </span>
+                            </Link>
+                            <NavDropdown.Divider />
+                            <Link to="/Rawmaterial">
+                                <span className='Dropdown_linkk'>
+                                    مخزن المادة الخام
+                                </span>
+                            </Link>
+                        </NavDropdown>
+                    </span>
+                </div>
 
-                                <li className="p-2 rounded">
-                                    <LinkWithPermission to="/Clients" permission="Clients">
-                                        العملاء
-                                    </LinkWithPermission>
-                                </li>
-                                <li className="p-2 rounded">
-                                    <Link to="/Logout" className='Dropdown_linkk'>
-                                        تسجيل الخروج
-                                    </Link>
-                                </li>
-                            </ul>
-                        </Offcanvas.Body>
-                    </Navbar.Offcanvas>
-                </Navbar>
-            ))
-            }
-        </div >
+                <div className="my-3 div5">
+                    <Link to="/Suppliers">
+                        <div className='flex items-center'>
+                            <img src={supplier} alt="supplier" />
+                            <span className='p_link mr-2'>
+                                المورد
+                            </span>
+                        </div>
+                    </Link>
+                </div>
+
+                <div className="my-3 div6">
+                    <Link to="/Clients">
+                        <div className='flex items-center'>
+                            <img src={clients} alt="Clients" />
+                            <span className='p_link mr-2'>
+                                العملاء
+                            </span>
+                        </div>
+                    </Link>
+                </div>
+
+                <div className="py-3 div7">
+                    <Link to="/Logout" className='flex unlock items-center'>
+                        <img src={logout} alt="logout" />
+                        <span className='p_link mr-2'>
+                            تسجيل الخروج
+                        </span>
+                    </Link>
+                </div>
+            </div>
+        </div>
     );
 };
+
+const CustomToggle = React.forwardRef(({ children, onClick }, ref) => (
+    <span
+        ref={ref}
+        onClick={(e) => {
+            e.preventDefault();
+            onClick(e);
+        }}
+    >
+        {children}
+    </span>
+));
 
 export default Sidebar;

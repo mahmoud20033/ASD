@@ -1,24 +1,16 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-
 const Logout = () => {
     const navigate = useNavigate();
-
     const handleLogout = () => {
-        // Clear all user-related data
         localStorage.removeItem('currentUser');
         localStorage.removeItem('rememberedEmail');
         localStorage.removeItem('rememberedPassword');
         localStorage.removeItem('rememberMe');
-
         navigate('/');
     };
-
-    const handleCancel = () => {
-        navigate(-1);
-    };
-
+    const handleCancel = () => { navigate(-1); };
     return (
         <div className="logout-modal">
             <Modal show={true} centered onHide={handleCancel}>
@@ -40,5 +32,4 @@ const Logout = () => {
         </div>
     );
 };
-
 export default Logout;

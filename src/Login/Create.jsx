@@ -4,25 +4,22 @@ import React, { useState } from 'react'
 import Form from 'react-bootstrap/Form';
 import { useNavigate } from 'react-router-dom';
 import { useUsers } from '../context/UserContext';
+import { FaEyeSlash, FaEye } from 'react-icons/fa';
 
-// Create component for user registration
 const Create = () => {
-  // Hook for programmatic navigation
   const navigate = useNavigate();
-  // Get addUser function from UserContext
   const { addUser } = useUsers();
 
-  // State to manage form input values
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
     confirmPassword: ''
   });
-  // State to manage error messages
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Handle input changes in form fields
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -31,78 +28,46 @@ const Create = () => {
     }));
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    // Validate that all fields are filled
     if (!formData.username || !formData.email || !formData.password || !formData.confirmPassword) {
       setError('جميع الحقول مطلوبة');
       return;
     }
-
-    // Validate password match
     if (formData.password !== formData.confirmPassword) {
       setError('كلمات المرور غير متطابقة');
       return;
     }
 
     try {
-      // Check for existing email in localStorage
-      const existingUsers = JSON.parse(localStorage.getItem('users') || '[]');
-      const emailExists = existingUsers.some(user => user.email === formData.email);
-
-      // Prevent duplicate email registration
-      if (emailExists) {
-        setError('هذا البريد الإلكتروني مسجل بالفعل');
-        return;
-      }
-
-      // Create new user object with default role and permissions
       const newUser = {
         username: formData.username,
         email: formData.email,
-        password: formData.password,
-        role: 'newUser',
-        permissions: {
-          Dashboard: false,
-          Store_Supervisor: false,
-          Foreman_Supervisor: false,
-          Workers: false,
-          Scrapstore: false,
-          Rawmaterial: false,
-          Suppliers: false,
-          Clients: false
-        }
+        password: formData.password
       };
 
-      // Save user to context and localStorage
+      try {
+        await axios.post('http://localhost:8888/api/auth/register', newUser);
+      } catch (apiErr) {
+        setError('فشل الاتصال بقاعدة البيانات');
+        return;
+      }
       addUser(newUser);
-      const updatedUsers = [...existingUsers, newUser];
-      localStorage.setItem('users', JSON.stringify(updatedUsers));
-
-      // Redirect to login page after successful registration
       navigate('/');
     } catch (err) {
       setError('حدث خطأ في التسجيل');
     }
   };
 
-  // Render registration form
   return (
     <div>
-      {/* Main container with background */}
       <div className='bg_login'>
-        {/* Form container with styling */}
         <div className='min-w-96 w-3/6 login_container'>
-          {/* Form title */}
           <h1 className='min-w-96 w-6/6 h1_create'>انشاء حساب</h1>
-          {/* Error message display */}
           {error && <div className="text-red-500 text-center mb-4">{error}</div>}
-          {/* Registration form */}
           <Form onSubmit={handleSubmit}>
-            {/* Username input field */}
             <Form.Group className="mb-4 group_create" controlId="formBasictext1">
               <Form.Control
                 className='user_create'
@@ -113,7 +78,6 @@ const Create = () => {
                 onChange={handleChange}
               />
             </Form.Group>
-            {/* Email input field */}
             <Form.Group className="mb-4 group_create" controlId="formBasicEmailcraete1">
               <Form.Control
                 className='email_create'
@@ -124,29 +88,54 @@ const Create = () => {
                 onChange={handleChange}
               />
             </Form.Group>
-            {/* Password input field */}
             <Form.Group className="mb-4 group_create" controlId="formBasicPassword1">
-              <Form.Control
-                className='group_form_create'
-                type="password"
-                placeholder="كلمة السر"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-              />
+              <div className="position-relative">
+                <Form.Control
+                  className='group_form_create'
+                  type={showPassword ? "text" : "password"}
+                  placeholder="كلمة السر"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                />
+                <div
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    left: '10px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </div>
+              </div>
             </Form.Group>
-            {/* Confirm password input field */}
             <Form.Group className="mb-4 group_create" controlId="formBasicConfirmPassword1">
-              <Form.Control
-                className='group_form_create'
-                type="password"
-                placeholder="تاكيد كلمة السر"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-              />
+              <div className="position-relative">
+                <Form.Control
+                  className='group_form_create'
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="تاكيد كلمة السر"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                />
+                <div
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  style={{
+                    position: 'absolute',
+                    left: '10px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                </div>
+              </div>
             </Form.Group>
-            {/* Submit button */}
             <button type="submit" className='max-w-96 w-5/12 py-2 btn_login'>انشاء حساب</button>
           </Form>
         </div>

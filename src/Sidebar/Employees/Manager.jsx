@@ -1,31 +1,44 @@
 // Employees Component: Manages employee records and operations
-import React, { useEffect, useState } from 'react'
-import "../Sidebar.css"
+import React, { useState, useRef, useEffect } from 'react'
 import Table from 'react-bootstrap/Table';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import InputGroup from 'react-bootstrap/InputGroup';
 import Card from 'react-bootstrap/Card';
 import { useSearch } from '../../context/SearchContext';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import axios from 'axios';
 
 const Manager = () => {
     const { searchQuery } = useSearch()
     const [isEditingManager, setIsEditingManager] = useState(false)
     const [managerDetails, setManagerDetails] = useState({
-        name: localStorage.getItem('managerName') || 'محمود محمد',
+        name: 'محمود محمد',
     })
 
+    // Get token from localStorage
+    const getToken = () => {
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        return user ? user.token : null;
+    };
+
+    // Get user role for permission checking
+    const getUserRole = () => {
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        return user ? user.role : null;
+    };
+
+    // Check if user has permission (manager or admin)
+    const hasPermission = () => {
+        const role = getUserRole();
+        return role === 'manager' || role === 'admin';
+    };
+
     const handleManagerEdit = (field, value) => {
-        setManagerDetails(prev => {
-            const newDetails = {
-                ...prev,
-                [field]: value
-            };
-            if (field === 'name') {
-                localStorage.setItem('managerName', value);
-            }
-            return newDetails;
-        })
+        setManagerDetails(prev => ({
+            ...prev,
+            [field]: value
+        }));
     }
 
     // State Management
@@ -33,34 +46,63 @@ const Manager = () => {
     const [Posts, Setpost] = useState([])
     // Controls editing states
     const [isEditing, setIsEditing] = useState(false)
-    const [editingId, setEditingId] = useState(null)
+    const [editingcode, setEditingcode] = useState(null)
     const [editedRow, setEditedRow] = useState({})
     // Manages new employee entry form
-    const [newSupplier, setNewSupplier] = useState({
-        Receiving_reports: '',
-        Store_Supervisor: '',
-        Foreman_Supervisor: '',
-        Suppliers: ''
+    const [Manager, setManager] = useState({
+        code: '',
+        storeSupervisorName: '',
+        workerSupervisorName: '',
     })
-    // CRUD Operations
-    // Handles form input changes
-    const handleInputChange = (event) => {
-        const { name, value } = event.target
-        setNewSupplier({ ...newSupplier, [name]: value })
+
+    // Fetch employees from API using axios
+    const fetchManagers = async () => {
+        try {
+            const response = await axios.get('http://localhost:8080/api/managers');
+            Setpost(response.data);
+        } catch (err) {
+            console.error('Error fetching managers:', err);
+        }
     }
 
-    // Add new employee to the list
-    const handleAddSupplier = () => {
-        const newId = Posts.length ? Posts[Posts.length - 1].id + 1 : 1
-        const newPost = { id: newId, ...newSupplier }
-        Setpost([...Posts, newPost])
-        setNewSupplier({ Store_Supervisor: '', Foreman_Supervisor: '', Suppliers: '' })
+    // Add new employee to the list and API using axios
+    const handleAddManager = async () => {
+        try {
+            // Validate required fields
+            if (!Manager.code || !Manager.storeSupervisorName || !Manager.workerSupervisorName) {
+                alert('Please fill all fields');
+                return;
+            }
+
+            const token = getToken();
+            if (!token) {
+                alert('Please login first');
+                return;
+            }
+
+            const response = await axios.post('http://localhost:8080/api/managers', Manager, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            Setpost([...Posts, response.data]);
+            setManager({ code: '', storeSupervisorName: '', workerSupervisorName: '' });
+        } catch (err) {
+            console.error('Error adding manager:', err);
+            alert(err.response?.data?.message || 'Error adding manager');
+        }
     }
+
+    useEffect(() => {
+        fetchManagers()
+    }, [])
 
     // Start editing an existing employee
-    const handleEdit = (supplier) => {
-        setEditingId(supplier.id)
-        setEditedRow(supplier)
+    const handleEdit = (Manager) => {
+        setEditingcode(Manager.code)
+        setEditedRow(Manager)
         setIsEditing(true)
     }
 
@@ -72,31 +114,66 @@ const Manager = () => {
         })
     }
 
-    // Save edited employee data
-    const handleSave = () => {
-        Setpost(Posts.map(post =>
-            post.id === editingId ? editedRow : post
-        ))
-        setEditingId(null)
-        setIsEditing(false)
-        setEditedRow({})
+    // Save edited employee data with API
+    const handleSave = async () => {
+        try {
+            const token = getToken();
+            if (!token) {
+                alert('Please login first');
+                return;
+            }
+
+            const response = await axios.put(`http://localhost:8080/api/managers/${editingcode}`, editedRow, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            Setpost(Posts.map(post =>
+                post.code === editingcode ? response.data : post
+            ));
+            setEditingcode(null);
+            setIsEditing(false);
+            setEditedRow({});
+        } catch (err) {
+            console.error('Error updating manager:', err);
+            alert('Failed to update manager');
+        }
     }
 
     // Cancel current operation
     const handleCancel = () => {
-        setEditingId(null)
+        setEditingcode(null)
         setIsEditing(false)
         setEditedRow({})
     }
 
-    // Delete employee record
-    const handleDelete = (id) => {
-        Setpost(Posts.filter(post => post.id !== id))
+    // Delete employee record using axios
+    const handleDelete = async (code) => {
+        try {
+            const token = getToken();
+            if (!token) {
+                alert('Please login first');
+                return;
+            }
+
+            await axios.delete(`http://localhost:8080/api/managers/${code}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            Setpost(Posts.filter(post => post.code !== code));
+        } catch (err) {
+            console.error('Error deleting manager:', err);
+            alert('Failed to delete manager');
+        }
     }
 
     // Filter employees based on search term
     const filteredPosts = Posts.filter(post =>
-        post.id?.toString().includes(searchQuery)
+        post.code?.toString().includes(searchQuery)
     )
     // Handle report printing
     const handlePrint = () => {
@@ -104,14 +181,28 @@ const Manager = () => {
         const windowPrint = window.open('', '', 'width=900,height=600');
         windowPrint.document.write(`
                 ${printContent.outerHTML}
-    `);
+        `);
         windowPrint.document.close();
         windowPrint.focus();
         windowPrint.print();
         windowPrint.close();
     };
+
+    const tableRef = useRef(null);
+
+    const scroll = (direction) => {
+        if (tableRef.current) {
+            const scrollAmount = 100;
+            if (direction === 'left') {
+                tableRef.current.scrollLeft -= scrollAmount;
+            } else {
+                tableRef.current.scrollLeft += scrollAmount;
+            }
+        }
+    };
+
     return (
-        <div className=' Navvv_com Suppliers pt-3  absolute top-0 left-0 w-10/12 '>
+        <div className=' Navvv_com Suppliers pt-3 '>
             <Button className='mr-3 mb-2 bg-black' onClick={handlePrint}>
                 طباعة التقرير
             </Button>
@@ -128,9 +219,9 @@ const Manager = () => {
                     </Button>
                 </Card.Header>
                 <Card.Body>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grcode grcode-cols-2 gap-4">
                         <div>
-                            <p className='text-2xl	'>
+                            <p className='text-2xl'>
                                 <strong className='font-bold'>الاسم :  </strong>
                                 {isEditingManager ? (
                                     <Form.Control
@@ -141,53 +232,7 @@ const Manager = () => {
                                     />
                                 ) : managerDetails.name}
                             </p>
-                            {/* <p>
-                                <strong>المنصب:</strong>{' '}
-                                {isEditingManager ? (
-                                    <Form.Control
-                                        value={managerDetails.position}
-                                        onChange={(e) => handleManagerEdit('position', e.target.value)}
-                                        size="sm"
-                                        className="d-inline-block w-auto ml-2"
-                                    />
-                                ) : managerDetails.position}
-                            </p> */}
                         </div>
-                        {/* <div>
-                            <p>
-                                <strong>القسم:</strong>{' '}
-                                {isEditingManager ? (
-                                    <Form.Control
-                                        value={managerDetails.department}
-                                        onChange={(e) => handleManagerEdit('department', e.target.value)}
-                                        size="sm"
-                                        className="d-inline-block w-auto ml-2"
-                                    />
-                                ) : managerDetails.department}
-                            </p>
-                            <p>
-                                <strong>الهاتف:</strong>{' '}
-                                {isEditingManager ? (
-                                    <Form.Control
-                                        value={managerDetails.phone}
-                                        onChange={(e) => handleManagerEdit('phone', e.target.value)}
-                                        size="sm"
-                                        className="d-inline-block w-auto ml-2"
-                                    />
-                                ) : managerDetails.phone}
-                            </p>
-                            <p>
-                                <strong>البريد الإلكتروني:</strong>{' '}
-                                {isEditingManager ? (
-                                    <Form.Control
-                                        value={managerDetails.email}
-                                        onChange={(e) => handleManagerEdit('email', e.target.value)}
-                                        size="sm"
-                                        className="d-inline-block w-auto ml-2"
-                                    />
-                                ) : managerDetails.email}
-                            </p>
-                        </div> */}
                     </div>
                 </Card.Body>
             </Card>
@@ -198,139 +243,145 @@ const Manager = () => {
                         <span className='w-full '>
                             <InputGroup className="my-3 w-full">
                                 <Form.Control
-                                    placeholder="استلام تقارير"
-                                    aria-label="استلام تقارير"
-                                    name="Receiving_reports"
-                                    value={newSupplier.Receiving_reports}
-                                    onChange={handleInputChange}
-                                    className='input'
+                                    placeholder="الكود"
+                                    aria-label="الكود"
+                                    name="code"
+                                    value={Manager.code}
+                                    onChange={(e) => setManager({ ...Manager, code: e.target.value })}
+                                    style={{ display: hasPermission() ? 'block' : 'none' }}
                                 />
                                 <Form.Control
                                     placeholder="اسم مشرف المخازن"
                                     aria-label="اسم مشرف المخازن"
-                                    name="Store_Supervisor"
-                                    value={newSupplier.Store_Supervisor}
-                                    onChange={handleInputChange}
+                                    name="storeSupervisorName"
+                                    value={Manager.storeSupervisorName}
+                                    onChange={(e) => setManager({ ...Manager, storeSupervisorName: e.target.value })}
                                     className='input'
+                                    style={{ display: hasPermission() ? 'block' : 'none' }}
                                 />
                                 <Form.Control
                                     placeholder="اسم مشرف العمال"
                                     aria-label="اسم مشرف العمال"
-                                    name="Foreman_Supervisor"
-                                    value={newSupplier.Foreman_Supervisor}
-                                    onChange={handleInputChange}
+                                    name="workerSupervisorName"
+                                    value={Manager.workerSupervisorName}
+                                    onChange={(e) => setManager({ ...Manager, workerSupervisorName: e.target.value })}
                                     className='input'
+                                    style={{ display: hasPermission() ? 'block' : 'none' }}
                                 />
-                                <Form.Control
-                                    placeholder="اسم المورد"
-                                    aria-label="اسم المورد"
-                                    name="Suppliers"
-                                    value={newSupplier.Suppliers}
-                                    onChange={handleInputChange}
-                                    className='input'
-                                />
-
                             </InputGroup>
-                            <Button className="mb-3 bg-black" onClick={handleAddSupplier}>
+                            <Button
+                                className="mb-3 bg-black"
+                                onClick={handleAddManager}
+                                style={{ display: hasPermission() ? 'block' : 'none' }}
+                            >
                                 اضافة موظف
                             </Button>
                         </span>
                     </div>
-                    <Table id="Employees-table" striped bordered hover>
-                        <thead>
-                            <tr>
-                                <th >الكود</th>
-                                <th >استلام تقارير</th>
-                                <th >اسم مشرف المخازن</th>
-                                <th >اسم مشرف العمال</th>
-                                <th >اسم المورد</th>
-                                <th >تحديث البيانات</th>
-                            </tr>
-                        </thead>
-                        {filteredPosts.map((post) => (
-                            <tbody key={post.id}>
-                                <tr>
-                                    <td>{post.id}</td>
-                                    <td>
-                                        {editingId === post.id ? (
-                                            <Form.Control
-                                                value={editedRow.Receiving_reports}
-                                                onChange={(e) => handleCellChange(e, 'Receiving_reports')}
-                                            />
-                                        ) : post.Receiving_reports}
-                                    </td>
-                                    <td>
-                                        {editingId === post.id ? (
-                                            <Form.Control
-                                                value={editedRow.Store_Supervisor}
-                                                onChange={(e) => handleCellChange(e, 'Store_Supervisor')}
-                                            />
-                                        ) : post.Store_Supervisor}
-                                    </td>
-                                    <td>
-                                        {editingId === post.id ? (
-                                            <Form.Control
-                                                value={editedRow.Foreman_Supervisor}
-                                                onChange={(e) => handleCellChange(e, 'Foreman_Supervisor')}
-                                            />
-                                        ) : post.Foreman_Supervisor}
-                                    </td>
-                                    <td>
-                                        {editingId === post.id ? (
-                                            <Form.Control
-                                                value={editedRow.Suppliers}
-                                                onChange={(e) => handleCellChange(e, 'Suppliers')}
-                                            />
-                                        ) : post.Suppliers}
-                                    </td>
-
-                                    <td>
-                                        {editingId === post.id ? (
-                                            <>
-                                                <Button
-                                                    variant="outline-success"
-                                                    size="sm"
-                                                    onClick={handleSave}
-                                                    className="me-2"
-                                                >
-                                                    حفظ
-                                                </Button>
-                                                <Button
-                                                    variant="outline-danger"
-                                                    size="sm"
-                                                    onClick={handleCancel}
-                                                >
-                                                    الغاء
-                                                </Button>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Button
-                                                    variant="outline-primary"
-                                                    size="sm"
-                                                    onClick={() => handleEdit(post)}
-                                                    className="me-2"
-                                                >
-                                                    تحديث
-                                                </Button>
-                                                <Button
-                                                    variant="outline-danger"
-                                                    size="sm"
-                                                    onClick={() => handleDelete(post.id)}
-                                                >
-                                                    حذف
-                                                </Button>
-                                            </>
-                                        )}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        ))}
-                    </Table>
+                    <div className="relative">
+                        <button
+                            onClick={() => scroll('left')}
+                            className="absolute left-0 top-1/2 z-10 bg-gray-800 text-white p-2 rounded-full opacity-70 hover:opacity-100"
+                            style={{ transform: 'translateY(-50%)' }}
+                        >
+                            <FaChevronLeft />
+                        </button>
+                        <button
+                            onClick={() => scroll('right')}
+                            className="absolute right-0 top-1/2 z-10 bg-gray-800 text-white p-2 rounded-full opacity-70 hover:opacity-100"
+                            style={{ transform: 'translateY(-50%)' }}
+                        >
+                            <FaChevronRight />
+                        </button>
+                        <div
+                            ref={tableRef}
+                            style={{
+                                overflowX: 'auto'
+                            }}
+                        >
+                            <Table id="Employees-table" striped bordered hover>
+                                <thead>
+                                    <tr>
+                                        <th>الكود</th>
+                                        <th>اسم مشرف المخازن</th>
+                                        <th>اسم مشرف العمال</th>
+                                        <th
+                                            style={{ display: hasPermission() ? 'block' : 'none' }}
+                                        >تحديث البيانات</th>
+                                    </tr>
+                                </thead>
+                                {filteredPosts.map((post) => (
+                                    <tbody key={post.code}>
+                                        <tr>
+                                            <td>{post.code}</td>
+                                            <td>
+                                                {editingcode === post.code ? (
+                                                    <Form.Control
+                                                        value={editedRow.storeSupervisorName}
+                                                        onChange={(e) => handleCellChange(e, 'storeSupervisorName')}
+                                                        size="sm"
+                                                    />
+                                                ) : post.storeSupervisorName}
+                                            </td>
+                                            <td>
+                                                {editingcode === post.code ? (
+                                                    <Form.Control
+                                                        value={editedRow.workerSupervisorName}
+                                                        onChange={(e) => handleCellChange(e, 'workerSupervisorName')}
+                                                        size="sm"
+                                                    />
+                                                ) : post.workerSupervisorName}
+                                            </td>
+                                            <td
+                                                style={{ display: hasPermission() ? 'block' : 'none' }}
+                                            >
+                                                {editingcode === post.code ? (
+                                                    <>
+                                                        <Button
+                                                            variant="outline-success"
+                                                            size="sm"
+                                                            onClick={handleSave}
+                                                            className="me-2"
+                                                        >
+                                                            حفظ
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline-danger"
+                                                            size="sm"
+                                                            onClick={handleCancel}
+                                                        >
+                                                            الغاء
+                                                        </Button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Button
+                                                            variant="outline-primary"
+                                                            size="sm"
+                                                            onClick={() => handleEdit(post)}
+                                                            className="me-2"
+                                                        >
+                                                            تحديث
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline-danger"
+                                                            size="sm"
+                                                            onClick={() => handleDelete(post.code)}
+                                                        >
+                                                            حذف
+                                                        </Button>
+                                                    </>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                ))}
+                            </Table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-
     )
 }
 

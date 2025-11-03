@@ -6,8 +6,8 @@ import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import { FaLock, FaUnlock, FaTrash, FaUserCog } from 'react-icons/fa'
 import { Modal } from 'react-bootstrap';
-import { useUsers } from '../context/UserContext'
 import { useSearch } from '../context/SearchContext'
+import axios from 'axios';
 
 /**
  * Pouvoirs (Permissions) component handles user roles and permissions management.
@@ -15,22 +15,9 @@ import { useSearch } from '../context/SearchContext'
  * setting individual permissions, and managing admin settings.
  */
 const Pouvoirs = () => {
-    // Initialize default admin user if none exists
-    useEffect(() => {
-        if (!localStorage.getItem('currentUser')) {
-            localStorage.setItem('currentUser', JSON.stringify({
-                email: 'admin@example.com',
-                username: 'admin',
-                role: 'manager'
-            }));
-        }
-    }, []);
-
-    // Get user management functions from context
-    const { users, updateUserPermissions, deleteUser, updateUserInfo, updateUserRole } = useUsers();
     const { searchQuery } = useSearch();
-    // Get current user from localStorage
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    const [users, setUsers] = useState([]);
+    const [currentUser, setCurrentUser] = useState(null);
     // State for manager settings modal
     const [showmanagerModal, setShowmanagerModal] = useState(false);
     // State for manager settings form
@@ -40,6 +27,53 @@ const Pouvoirs = () => {
         newPassword: '',
         confirmPassword: ''
     });
+
+    // Get token from localStorage
+    const getToken = () => {
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+        return user ? user.token : null;
+    };
+     const getUserRole = () => {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    return currentUser ? currentUser.role : null;
+  };
+
+  // Check if user has permission (manager or admin)
+  const hasPermission = () => {
+    const role = getUserRole();
+    return role === 'manager' || role === 'admin';
+  };
+    // Fetch current user and all users from backend
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const token = getToken();
+                if (!token) {
+                    console.error('No authentication token found');
+                    return;
+                }
+
+                // Fetch all users
+                const usersResponse = await axios.get('http://localhost:8080/api/users', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                setUsers(usersResponse.data);
+
+                // Set current user from localStorage
+                const storedUser = JSON.parse(localStorage.getItem('currentUser'));
+                setCurrentUser(storedUser);
+            } catch (error) {
+                console.error('Error fetching users:', error);
+                if (error.response?.status === 401 || error.response?.status === 400) {
+                    alert('Session expired. Please login again.');
+                    localStorage.removeItem('currentUser');
+                    window.location.href = '/';
+                }
+            }
+        };
+
+        fetchData();
+    }, []);
 
     /**
      * Defines the hierarchy of roles where:
@@ -67,7 +101,7 @@ const Pouvoirs = () => {
      * Handles role changes for users. Ensures only managers can change roles
      * and prevents having multiple managers.
      */
-    const handleRoleChange = (email, newRole) => {
+    const handleRoleChange = async (email, newRole) => {
         if (currentUser?.role !== 'manager') {
             alert('Only managers can modify user roles');
             return;
@@ -89,14 +123,27 @@ const Pouvoirs = () => {
             alert('You cannot modify users with equal or higher roles');
             return;
         }
-        updateUserRole(email, newRole);
+
+        try {
+            const token = getToken();
+            await axios.put('http://localhost:8080/api/user/role',
+                { email, role: newRole },
+                { headers: { 'Authorization': `Bearer ${token}` } }
+            );
+
+            // Update local state
+            setUsers(users.map(u => u.email === email ? { ...u, role: newRole } : u));
+        } catch (error) {
+            console.error('Error updating role:', error);
+            alert('Failed to update role');
+        }
     };
 
     /**
      * Toggles individual permissions for a specific user
      * Only managers can modify permissions
      */
-    const togglePermission = (email, permission) => {
+    const togglePermission = async (email, permission) => {
         if (currentUser?.role !== 'manager') return;
 
         const user = users.find(u => u.email === email);
@@ -105,7 +152,20 @@ const Pouvoirs = () => {
                 ...user.permissions,
                 [permission]: !user.permissions[permission]
             };
-            updateUserPermissions(email, newPermissions);
+
+            try {
+                const token = getToken();
+                await axios.put('http://localhost:8080/api/user/permissions',
+                    { email, permissions: newPermissions },
+                    { headers: { 'Authorization': `Bearer ${token}` } }
+                );
+
+                // Update local state
+                setUsers(users.map(u => u.email === email ? { ...u, permissions: newPermissions } : u));
+            } catch (error) {
+                console.error('Error updating permissions:', error);
+                alert('Failed to update permissions');
+            }
         }
     };
 
@@ -115,10 +175,10 @@ const Pouvoirs = () => {
      * - Cannot delete own account
      * - Requires confirmation for manager deletion
      */
-    const handleDeleteUser = (email) => {
+    const handleDeleteUser = async (email) => {
         // Make sure only manager can delete users
         if (currentUser?.role !== 'manager') {
-            alert('Only manageristrators can delete users');
+            alert('Only managers can delete users');
             return;
         }
 
@@ -140,7 +200,18 @@ const Pouvoirs = () => {
         }
 
         if (window.confirm('Are you sure you want to delete this user?')) {
-            deleteUser(email);
+            try {
+                const token = getToken();
+                await axios.delete(`http://localhost:8080/api/user/${email}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                // Update local state
+                setUsers(users.filter(u => u.email !== email));
+            } catch (error) {
+                console.error('Error deleting user:', error);
+                alert('Failed to delete user');
+            }
         }
     };
 
@@ -148,22 +219,40 @@ const Pouvoirs = () => {
      * Updates manager account settings including email and password
      * Validates password confirmation before updating
      */
-    const handlemanagerUpdate = () => {
+    const handlemanagerUpdate = async () => {
         if (!currentUser || managerSettings.newPassword !== managerSettings.confirmPassword) {
             alert('Passwords do not match');
             return;
         }
 
-        updateUserInfo(currentUser.email, {
-            email: managerSettings.newEmail || currentUser.email,
-            password: managerSettings.newPassword
-        });
-        setShowmanagerModal(false);
-        alert('manager settings updated successfully');
+        try {
+            const token = getToken();
+            await axios.put('http://localhost:8080/api/user/info',
+                {
+                    email: currentUser.email,
+                    newEmail: managerSettings.newEmail || currentUser.email,
+                    password: managerSettings.newPassword
+                },
+                { headers: { 'Authorization': `Bearer ${token}` } }
+            );
+
+            setShowmanagerModal(false);
+            alert('Manager settings updated successfully');
+
+            // Update localStorage if email changed
+            if (managerSettings.newEmail) {
+                const updatedUser = { ...currentUser, email: managerSettings.newEmail };
+                localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+                setCurrentUser(updatedUser);
+            }
+        } catch (error) {
+            console.error('Error updating manager settings:', error);
+            alert('Failed to update settings');
+        }
     };
 
     return (
-        <div className='Store_Supervisor absolute pt-3 top-0 left-0 w-10/12'>
+        <div className='w-full pt-2 px-2'>
             <div className='px-1'>
                 {/* Manager settings button - only visible to managers */}
                 {currentUser?.role === 'manager' && (
@@ -175,15 +264,6 @@ const Pouvoirs = () => {
                         <FaUserCog className="me-1" /> إعدادات المسؤول
                     </Button>
                 )}
-
-                {/* Search input for filtering users */}
-                <Form.Control
-                    value={searchQuery}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search users by email..."
-                    className='mb-3 text-center'
-                />
-
                 {/* User permissions table */}
                 <Table striped bordered hover>
                     <thead>

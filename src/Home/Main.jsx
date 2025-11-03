@@ -1,15 +1,23 @@
 import React from 'react';
 import Carousel from 'react-bootstrap/Carousel';
-
+import img1 from './Images/img1.png';
+import img2 from './Images/img2.png';
+import img3 from './Images/img3.png';
 const Main = () => {
     return (
-        <div className='Suppliers absolute top-0 left-0 w-10/12 '>
-            <div className='h-screen flex-1'>
-                <Carousel interval={15000} >
+        <div>
+            <div className='w-full'>
+                <Carousel
+                    interval={15000}
+                    className="flex h-full items-center"
+                    indicators={false}
+                    prevIcon={<span className="carousel-control-prev-icon !bg-black !important" />}
+                    nextIcon={<span className="carousel-control-next-icon !bg-black !important" />}
+                >
                     <Carousel.Item interval={5000}>
                         <img
                             className="d-block w-screen h-screen"
-                            src='src/Home/Images/1.png'
+                            src={img1}
                             alt="First slide"
                         />
                         <Carousel.Caption className='Carousel'>
@@ -19,7 +27,7 @@ const Main = () => {
                     <Carousel.Item interval={5000}>
                         <img
                             className="d-block w-screen h-screen"
-                            src="src/Home/Images/2.png"
+                            src={img2}
                             alt="Second slide"
                         />
                         <Carousel.Caption className='Carousel'>
@@ -29,7 +37,7 @@ const Main = () => {
                     <Carousel.Item interval={5000}>
                         <img
                             className="d-block w-screen h-screen"
-                            src="src/Home/Images/3.png"
+                            src={img3}
                             alt="Third slide"
                         />
                         <Carousel.Caption className='Carousel'>
