@@ -48,16 +48,20 @@ const Create = () => {
         password: formData.password
       };
 
-      try {
-        await axios.post('http://localhost:8888/api/auth/register', newUser);
-      } catch (apiErr) {
-        setError('فشل الاتصال بقاعدة البيانات');
-        return;
+      const response = await axios.post('http://localhost:8080/api/user/register', newUser);
+
+      if (response.status === 201 || response.status === 200) {
+        addUser(newUser);
+        navigate('/');
       }
-      addUser(newUser);
-      navigate('/');
-    } catch (err) {
-      setError('حدث خطأ في التسجيل');
+    } catch (apiErr) {
+      if (apiErr.response?.data?.message) {
+        setError(apiErr.response.data.message);
+      } else if (apiErr.message === 'Network Error') {
+        setError('فشل الاتصال بقاعدة البيانات');
+      } else {
+        setError('حدث خطأ في التسجيل');
+      }
     }
   };
 
