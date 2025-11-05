@@ -14,7 +14,6 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
-  const [savedEmails, setSavedEmails] = useState([]);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { users } = useUsers();
@@ -29,10 +28,6 @@ const Login = () => {
       setPassword(savedPassword);
       setRememberMe(true);
     }
-
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const emails = users.map(user => user.email);
-    setSavedEmails(emails);
   }, []);
 
   // Handle "Remember Me" checkbox changes
@@ -119,14 +114,8 @@ const Login = () => {
                 placeholder="اسم المستخدم"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                list="emailList"
                 autoComplete="email"
               />
-              <datalist id="emailList">
-                {savedEmails.map((email, index) => (
-                  <option key={index} value={email} />
-                ))}
-              </datalist>
             </Form.Group>
             <Form.Group className="mb-6 Form_input" controlId="formBasicPassword">
               <div className="position-relative">
@@ -158,7 +147,7 @@ const Login = () => {
                     type="checkbox"
                     label="تذكرني"
                     checked={rememberMe}
-                    onChange={handleRememberMe}
+                    // onChange={handleRememberMe}
                   />
                 </Form.Group>
               </Col>
