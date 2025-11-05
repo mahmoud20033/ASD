@@ -80,6 +80,7 @@ const Create = () => {
                 name="username"
                 value={formData.username}
                 onChange={handleChange}
+                autoComplete='off'
               />
             </Form.Group>
             <Form.Group className="mb-4 group_create" controlId="formBasicEmailcraete1">
@@ -90,6 +91,7 @@ const Create = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
+                autoComplete="off"
               />
             </Form.Group>
             <Form.Group className="mb-4 group_create" controlId="formBasicPassword1">

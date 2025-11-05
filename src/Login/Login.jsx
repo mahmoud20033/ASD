@@ -114,7 +114,7 @@ const Login = () => {
                 placeholder="اسم المستخدم"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
+                autoComplete="off"
               />
             </Form.Group>
             <Form.Group className="mb-6 Form_input" controlId="formBasicPassword">
@@ -147,7 +147,7 @@ const Login = () => {
                     type="checkbox"
                     label="تذكرني"
                     checked={rememberMe}
-                    // onChange={handleRememberMe}
+                    onChange={handleRememberMe}
                   />
                 </Form.Group>
               </Col>
